@@ -1,0 +1,25 @@
+{
+	"template_dir": "templates", 
+	"content_dir": "contents",
+	"output_dir": "output",
+
+	"server": { 
+		"port": 9009
+	},
+
+	"bundles": {
+		"/css/all.css": [
+			"/css/normalize.css",	
+			"/css/main.css",
+			"/css/site.less"
+		]	
+	},
+
+	"litcoffee": {
+		"path": "../lib"
+	},
+
+	"plugins": {
+		"content_handler": "../lib/punch-literate-coffee-content-handler.js"
+	}
+}
