@@ -30,7 +30,7 @@
 			<h1>Literate Coffee Content Handler for Punch</h1>
 <h2>What is Literate Programming?</h2>
 <p>Literate Programming is a way to construct your programs similar to the way you write any other prose, following your train of thoughts. Instead of jumping directly to the mechanical process of coding, you structure your program as a human readable document. The implementations of the ideas are done alongside the description. </p>
-<p>Concept of Literate programming was first introduced by Donald Knuth in 1970s as an alternative to structred programming. Recently, this techinque was resurfaced with the introduction of &quot;Literate CoffeeScript&quot; mode introduced in CoffeeScript 1.5.</p>
+<p>Concept of Literate programming was first introduced by Donald Knuth in 1970s as an alternative to structured programming. Recently, this technique was resurfaced with the introduction of &quot;Literate CoffeeScript&quot; mode introduced in CoffeeScript 1.5.</p>
 <h2>How I do Literate Programming?</h2>
 <p>As you could see this program is done using the Literate Programming. Here&#39;s how my flow looked like.</p>
 <ul>
@@ -42,12 +42,12 @@
 <li>CoffeeScript&#39;s syntax compliments to this type of programming. No commas, no brackets, short functions, variable scoping.</li>
 </ul>
 <h2>What&#39;s this project?</h2>
+<pre><code>    LitCoffeeHandler = module.exports = {}</code></pre>
 <p>This is a custom content handler for Punch, to handle Literate CoffeeScript. It will produce human readable HTML pages from the markdown and machine executable JS from the coffeeScript code blocks.</p>
-<p>This could be used for:
+<p>This could be useful for:
 <em> Generating documentation for your library
 </em> To write code tutorials (automatically provide the source)</p>
-<pre><code>    LitCoffeeHandler = module.exports = {}</code></pre>
-<p>Content requests, that cannot be handled by this handler, will be delegated to default content handler of Punch. </p>
+<p>This works on top of Punch&#39;s default content handler. The content requests, that cannot be handled by this will be delegated to default content handler.</p>
 <pre><code>    DefaultContentHandler = require(&#39;punch&#39;).ContentHandler</code></pre>
 <h2>Setup</h2>
 <p>By convention, we expect the source files (<code>litcoffee</code> files) of a project to be found in the <code>src</code> path.</p>
@@ -114,7 +114,7 @@
             catch err
                 return callback err, {}, {}, modified_date</code></pre>
 <h2>Get Content Paths</h2>
-<p>Punch uses <code>getContentPaths</code> functions to identify all available pages for it to generate. We travese the source directory and create an array containing the paths of the <code>litcoffee</code> files. We ignore any hidden files or directories.</p>
+<p>Punch uses <code>getContentPaths</code> functions to identify all available pages for it to generate. We traverse the source directory and create an array containing the paths of the <code>litcoffee</code> files. We ignore any hidden files or directories.</p>
 <pre><code>    _ = require(&#39;underscore&#39;)
 
     LitCoffeeHandler.getContentPaths = (basepath, callback) -&gt;
@@ -133,7 +133,7 @@
 <pre><code>    LitCoffeeHandler.isSection = (basepath) -&gt;
         DefaultContentHandler.isSection(basepath)</code></pre>
 <h2>Get Sections</h2>
-<p>Similar to <code>isSection</code>, we&#39;ll delegate <code>getSections</code> to the default content handler.</p>
+<p>Punch calls <code>getSections</code> to get all available sections under content. Since we don&#39;t handle sections let&#39;s delegate that also to default content handler.</p>
 <pre><code>    LitCoffeeHandler.getSections = (callback) -&gt;
         DefaultContentHandler.getSections(callback)</code></pre>
 <h2>Inspiration</h2>

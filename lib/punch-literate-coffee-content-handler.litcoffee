@@ -4,7 +4,7 @@
 
 Literate Programming is a way to construct your programs similar to the way you write any other prose, following your train of thoughts. Instead of jumping directly to the mechanical process of coding, you structure your program as a human readable document. The implementations of the ideas are done alongside the description. 
 
-Concept of Literate programming was first introduced by Donald Knuth in 1970s as an alternative to structred programming. Recently, this techinque was resurfaced with the introduction of "Literate CoffeeScript" mode introduced in CoffeeScript 1.5.
+Concept of Literate programming was first introduced by Donald Knuth in 1970s as an alternative to structured programming. Recently, this technique was resurfaced with the introduction of "Literate CoffeeScript" mode introduced in CoffeeScript 1.5.
 
 ## How I do Literate Programming?
 
@@ -121,7 +121,7 @@ To compile LiterateCoffee files, we should get the configured CoffeeScript compi
 
 ## Get Content Paths
 
-Punch uses `getContentPaths` functions to identify all available pages for it to generate. We travese the source directory and create an array containing the paths of the `litcoffee` files. We ignore any hidden files or directories.
+Punch uses `getContentPaths` functions to identify all available pages for it to generate. We traverse the source directory and create an array containing the paths of the `litcoffee` files. We ignore any hidden files or directories.
 
 		_ = require('underscore')
 
