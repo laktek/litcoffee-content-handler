@@ -12,8 +12,8 @@ Concept of Literate programming was first introduced by Donald Knuth in 1970s as
 
 As you could see this program is done using the Literate Programming. Here's how my flow looked like.
 
-* Start with a blank paper.
-* Use [Distraction-free mode in Vim](http://www.laktek.com/2012/09/05/distraction-free-writing-with-vim/).
+* Start with a blank canvas.
+* [Distraction-free mode in Vim](http://www.laktek.com/2012/09/05/distraction-free-writing-with-vim/) can be helpful.
 * Type whatever comes to your mind, be it prose or code.
 * Use markdown formatting to structure the document. Code blocks needs to indent with 4-spaces.
 * Write as you would explain it to a friend sitting next to you (imaginery pair-programming)
