@@ -1,6 +1,8 @@
 # Literate Coffee Content Handler for Punch
 
 ## What is Literate Programming?
+	
+> "Write what disturbs you, what you fear, what you have not been willing to speak about. Be willing to be split open." - **Natalie Goldberg**
 
 Literate Programming is a way to construct your programs similar to the way you write any other prose, following your train of thoughts. Instead of jumping directly to the mechanical process of coding, you structure your program as a human readable document. The implementations of the ideas are done alongside the description. 
 
