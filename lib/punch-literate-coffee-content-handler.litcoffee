@@ -19,15 +19,15 @@ As you could see this program is done using the Literate Programming. Here's how
 
 ## What's this project? 
 
+		LitCoffeeHandler = module.exports = {}
+
 This is a custom content handler for Punch, to handle Literate CoffeeScript. It will produce human readable HTML pages from the markdown and machine executable JS from the coffeeScript code blocks.
 
-This could be used for:
+This could be useful for:
 * Generating documentation for your library
 * To write code tutorials (automatically provide the source)
 
-		LitCoffeeHandler = module.exports = {}
-
-Content requests, that cannot be handled by this handler, will be delegated to default content handler of Punch. 
+This works on top of Punch's default content handler. The content requests, that cannot be handled by this will be delegated to default content handler.
 
 		DefaultContentHandler = require('punch').ContentHandler
 
@@ -146,7 +146,7 @@ Punch calls `isSection` to check if there's an implicit index page to be rendere
 
 ## Get Sections 
 
-Similar to `isSection`, we'll delegate `getSections` to the default content handler.
+Punch calls `getSections` to get all available sections under content. Since we don't handle sections let's delegate that also to default content handler.
 
 		LitCoffeeHandler.getSections = (callback) ->
 			DefaultContentHandler.getSections(callback)
