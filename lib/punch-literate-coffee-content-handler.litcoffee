@@ -21,7 +21,9 @@ As you could see this program is done using the Literate Programming. Here's how
 
 This is a custom content handler for Punch, to handle Literate CoffeeScript. It will produce human readable HTML pages from the markdown and machine executable JS from the coffeeScript code blocks.
 
-Basically, you can use it as a doc-generator and compiler for your Literate CoffeeScript projects.
+This could be used for:
+* Generating documentation for your library
+* To write code tutorials (automatically provide the source)
 
 		LitCoffeeHandler = module.exports = {}
 
@@ -54,26 +56,18 @@ Let's setup the markdown parser, based on what has been configured.
 ## Negotiating Content
 
 Punch's page renderer will call `negotiateContent` function when user requests content. We shall check if we can serve the content. 
-		
-		LitCoffeeHandler.negotiateContent = (request_path, file_extension, options, callback) -> 
-			checkFileExists(request_path, file_extension, callback)
-			
-## Check File Exists 
-
-Here we are looking for a matching file for the user's request in the source path. 
 
 		fs = require 'fs'
 		path = require 'path'
 
-		checkFileExists = (request_path, file_extension, callback) ->
+		LitCoffeeHandler.negotiateContent = (request_path, file_extension, options, callback) -> 
 			file_path = path.join(LitCoffeeHandler.srcPath, "#{request_path}.litcoffee") 
 			fs.stat file_path, (err, stats) -> 
 
 If no file found, we'll delegate the handling to the `DefaultContentHandler`. 
 
 				if err
-					return DefaultContentHandler.negotiateContent(request_path, file_extension,
-																												options, callback)
+					return DefaultContentHandler.negotiateContent(request_path, file_extension, options, callback)
 
 Get the file's modified date from the stats.
 	
@@ -89,8 +83,7 @@ If there's a matching `litcoffee` file available in path, then we have to decide
 				else if file_extension == '.js'
 					compileToJs file_path, modified_date, callback
 				else
-					DefaultContentHandler.negotiateContent(request_path, file_extension, 
-																								 options, callback)
+					DefaultContentHandler.negotiateContent(request_path, file_extension, options, callback)
 
 ## Parse Markdown
 
@@ -137,7 +130,7 @@ Punch uses `getContentPaths` functions to identify all available pages for it to
 
 			fs.readdir path.join(process.cwd(), LitCoffeeHandler.srcPath), (err, files) ->
 				_.each files, (file) ->
-					if file.indexOf '.' > 0
+					if file.indexOf '.litcoffee' > 0
 						basename = file.split('.').shift()
 						collected_paths.push "#{basename}.html"
 						collected_paths.push "#{basename}.js"
