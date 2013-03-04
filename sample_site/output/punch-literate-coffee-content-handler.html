@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+			<meta charset="utf-8">
+			<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+			<title></title>
+			<meta name="description" content="">
+			<meta name="viewport" content="width=device-width">
+
+			<!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+
+			<link rel="stylesheet" type="text/css" media="screen" href="/css/normalize.css">
+<link rel="stylesheet" type="text/css" media="screen" href="/css/main.css">
+<link rel="stylesheet" type="text/css" media="screen" href="/css/site.css"> 
+    </head>
+
+    <body>
+			<header>
+				<h1></h1>
+
+				<ul class="navbar">
+				</ul>
+			</header>
+
+
+		<div role="main">
+			<h1>Literate Coffee Content Handler for Punch</h1>
+<h2>What is Literate Programming?</h2>
+<p>Literate Programming is a way to construct your programs similar to the way you write any other prose, following your train of thoughts. Instead of jumping directly to the mechanical process of coding, you structure your program as a human readable document. The implementations of the ideas are done alongside the description. </p>
+<p>Concept of Literate programming was first introduced by Donald Knuth in 1970s as an alternative to structred programming. Recently, this techinque was resurfaced with the introduction of &quot;Literate CoffeeScript&quot; mode introduced in CoffeeScript 1.5.</p>
+<h2>How I do Literate Programming?</h2>
+<p>As you could see this program is done using the Literate Programming. Here&#39;s how my flow looked like.</p>
+<ul>
+<li>Start with a blank paper.</li>
+<li>Use <a href="http://www.laktek.com/2012/09/05/distraction-free-writing-with-vim/">Distraction-free mode in Vim</a>.</li>
+<li>Type whatever comes to your mind, be it prose or code.</li>
+<li>Use markdown formatting to structure the document. Code blocks needs to indent with 4-spaces.</li>
+<li>Write as you would explain it to a friend sitting next to you (imaginery pair-programming)</li>
+<li>CoffeeScript&#39;s syntax compliments to this type of programming. No commas, no brackets, short functions, variable scoping.</li>
+</ul>
+<h2>What&#39;s this project?</h2>
+<p>This is a custom content handler for Punch, to handle Literate CoffeeScript. It will produce human readable HTML pages from the markdown and machine executable JS from the coffeeScript code blocks.</p>
+<p>This could be used for:
+<em> Generating documentation for your library
+</em> To write code tutorials (automatically provide the source)</p>
+<pre><code>    LitCoffeeHandler = module.exports = {}</code></pre>
+<p>Content requests, that cannot be handled by this handler, will be delegated to default content handler of Punch. </p>
+<pre><code>    DefaultContentHandler = require(&#39;punch&#39;).ContentHandler</code></pre>
+<h2>Setup</h2>
+<p>By convention, we expect the source files (<code>litcoffee</code> files) of a project to be found in the <code>src</code> path.</p>
+<pre><code>    LitCoffeeHandler.srcPath = &#39;src&#39;</code></pre>
+<p>Punch calls the <code>setup</code> function of each configured plugin at the start, along with <a href="https://github.com/laktek/punch/wiki/Configuration-Options">project&#39;s configuration</a>. We can allow users to override the default path by providing a custom path in project&#39;s config.</p>
+<pre><code>    moduleUtils = require(&#39;punch&#39;).Utils.Module
+
+    LitCoffeeHandler.setup = (config) -&gt;
+        if user_defined_path = config.litcoffee?.path
+            LitCoffeeHandler.srcPath = user_defined_path </code></pre>
+<p>We need to delegate certain functions to <code>DefaultContentHandler</code>, so let&#39;s setup it as well.</p>
+<pre><code>        DefaultContentHandler.setup config</code></pre>
+<p>Let&#39;s setup the markdown parser, based on what has been configured.</p>
+<pre><code>        LitCoffeeHandler.markdownParser = moduleUtils.requireAndSetup config.plugins.parsers[&#39;.markdown&#39;], config</code></pre>
+<h2>Negotiating Content</h2>
+<p>Punch&#39;s page renderer will call <code>negotiateContent</code> function when user requests content. We shall check if we can serve the content. </p>
+<pre><code>    fs = require &#39;fs&#39;
+    path = require &#39;path&#39;
+
+    LitCoffeeHandler.negotiateContent = (request_path, file_extension, options, callback) -&gt; 
+        file_path = path.join(LitCoffeeHandler.srcPath, &quot;#{request_path}.litcoffee&quot;) 
+        fs.stat file_path, (err, stats) -&gt; </code></pre>
+<p>If no file found, we&#39;ll delegate the handling to the <code>DefaultContentHandler</code>. </p>
+<pre><code>            if err
+                return DefaultContentHandler.negotiateContent(request_path, file_extension, options, callback)</code></pre>
+<p>Get the file&#39;s modified date from the stats.</p>
+<pre><code>            modified_date = stats.mtime</code></pre>
+<p>If there&#39;s a matching <code>litcoffee</code> file available in path, then we have to decide what to do with it based on user&#39;s request. 
+<em> If the user requests for a HTML page, we&#39;ll parse the markdown. 
+</em> If she requests for JS, we&#39;ll compile it using CoffeeScript compiler. 
+* If the requested type is not something we can handle, again we&#39;ll delegate it to <code>DefaultContentHandler</code>.</p>
+<pre><code>            if file_extension == &#39;.html&#39;
+                parseMarkdown file_path, modified_date, callback
+            else if file_extension == &#39;.js&#39;
+                compileToJs file_path, modified_date, callback
+            else
+                DefaultContentHandler.negotiateContent(request_path, file_extension, options, callback)</code></pre>
+<h2>Parse Markdown</h2>
+<p>To parse the markdown file, we should use the configured markdown parser. Result should be presented as a JSON object. The parsed content will be assigned to a key named <code>content</code>. This is what should be used in the templates to render the parsed content.</p>
+<pre><code>    LitCoffeeHandler.markdownParser = null
+
+    parseMarkdown = (file_path, modified_date, callback) -&gt;
+        fs.readFile file_path, (err, litcoffee) -&gt;
+            if err
+                return callback(err)
+
+            LitCoffeeHandler.markdownParser.parse litcoffee.toString(), (err, parsed_output) -&gt;
+                if err
+                    return callback err, {}, {}, modified_date
+
+                callback null, { &#39;content&#39;: parsed_output }, {}, modified_date</code></pre>
+<h2>Compile to JS</h2>
+<p>To compile LiterateCoffee files, we should get the configured CoffeeScript compiler. Similar to parsed markdown content, this will also be presented in a JSON object (with output assigned to a key named <code>content</code>). To serve this as a JS file, user should create a mustache template with the tag <code>{{{content}}}</code> (named <code>_layout.js.mustache</code>).</p>
+<pre><code>    CoffeeScript = require(&#39;coffee-script&#39;)
+
+    compileToJs = (file_path, modified_date, callback) -&gt;
+        fs.readFile file_path, (err, litcoffee) -&gt;
+            if err
+                return callback(err)
+
+            try
+                parsed_output = CoffeeScript.compile litcoffee.toString(), { filename: file_path, literate: true }, (err, parsed_output) -&gt;
+                callback null, { &#39;content&#39;: parsed_output }, {}, modified_date
+            catch err
+                return callback err, {}, {}, modified_date</code></pre>
+<h2>Get Content Paths</h2>
+<p>Punch uses <code>getContentPaths</code> functions to identify all available pages for it to generate. We travese the source directory and create an array containing the paths of the <code>litcoffee</code> files. We ignore any hidden files or directories.</p>
+<pre><code>    _ = require(&#39;underscore&#39;)
+
+    LitCoffeeHandler.getContentPaths = (basepath, callback) -&gt;
+        collected_paths = []
+
+        fs.readdir path.join(process.cwd(), LitCoffeeHandler.srcPath), (err, files) -&gt;
+            _.each files, (file) -&gt;
+                if file.indexOf &#39;.litcoffee&#39; &gt; 0
+                    basename = file.split(&#39;.&#39;).shift()
+                    collected_paths.push &quot;#{basename}.html&quot;
+                    collected_paths.push &quot;#{basename}.js&quot;
+
+            callback null, collected_paths</code></pre>
+<h2>Is Section?</h2>
+<p>Punch calls <code>isSection</code> to check if there&#39;s an implicit index page to be rendered for the given path. We&#39;re leaving the section handling to the default content handler.</p>
+<pre><code>    LitCoffeeHandler.isSection = (basepath) -&gt;
+        DefaultContentHandler.isSection(basepath)</code></pre>
+<h2>Get Sections</h2>
+<p>Similar to <code>isSection</code>, we&#39;ll delegate <code>getSections</code> to the default content handler.</p>
+<pre><code>    LitCoffeeHandler.getSections = (callback) -&gt;
+        DefaultContentHandler.getSections(callback)</code></pre>
+<h2>Inspiration</h2>
+<ul>
+<li><a href="http://ashkenas.com/literate-coffeescript/">Journo &amp; Literate CoffeeScript</a></li>
+<li><a href="https://gist.github.com/grncdr/5039898">Codd - building immutable SQL queries from relational primitives</a></li>
+<li><a href="https://github.com/JonAbrams/tomljs/blob/master/toml.litcoffee">TOML parser for JavaScript</a></li>
+</ul>
+<h2>Further Reading</h2>
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Literate_programming">Literate Programming on Wikipedia</a></li>
+</ul>
+
+		</div>
+
+			<footer>
+				<p></p>
+			</footer>
+
+			<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
+		</body>
+
+</html>
+
